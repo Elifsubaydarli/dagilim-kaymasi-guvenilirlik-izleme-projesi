@@ -33,15 +33,8 @@ src/signals/   İzleme sinyalleri
 src/evaluation/Erken uyarı metrikleri ve kıyaslamalar
 ```
 
-## Geliştirme akışı
+## Faz 1: veri keşfi
 
-Her anlamlı değişiklikten sonra:
+Veri sayıları, eksik değer incelemesi, grafikler, literatür özeti ve yöntem seçimi [`reports/faz1_raporu.md`](reports/faz1_raporu.md) dosyasındadır.
 
-```bash
-git status
-git add <değişen-dosyalar>
-git commit -m "Kısa ve açıklayıcı mesaj"
-git push
-```
-
-Veri dosyalarını Git'e ekleme; yalnızca veri indirme/işleme kodunu, yapılandırmaları ve küçük, paylaşılabilir özet çıktıları sürümle.
+Ham veriler `data/` ve tekrar çalıştırıldığında üretilen ara çıktılar `results/` altında yerel tutulur. Raporda kullanılan paylaşılabilir grafikler ve özet CSV dosyaları `reports/figures/` altındadır.
