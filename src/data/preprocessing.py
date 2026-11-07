@@ -25,29 +25,89 @@ CATEGORICAL_FEATURES = {
 # İlk model hattından çıkarılır; etkisi duyarlılık analiziyle ayrıca incelenir.
 EXCLUDED_HIGH_MISSING_FEATURES = {"ACSEmployment": ["ESP"]}
 
+NUMERIC_FEATURES["DiabetesReadmission"] = [
+    "time_in_hospital",
+    "num_lab_procedures",
+    "num_procedures",
+    "num_medications",
+    "number_outpatient",
+    "number_emergency",
+    "number_inpatient",
+    "number_diagnoses",
+]
+CATEGORICAL_FEATURES["DiabetesReadmission"] = [
+    "race",
+    "gender",
+    "age",
+    "admission_type_id",
+    "discharge_disposition_id",
+    "payer_code",
+    "medical_specialty",
+    "diag_1",
+    "diag_2",
+    "diag_3",
+    "max_glu_serum",
+    "A1Cresult",
+    "metformin",
+    "repaglinide",
+    "nateglinide",
+    "chlorpropamide",
+    "glimepiride",
+    "acetohexamide",
+    "glipizide",
+    "glyburide",
+    "tolbutamide",
+    "pioglitazone",
+    "rosiglitazone",
+    "acarbose",
+    "miglitol",
+    "troglitazone",
+    "tolazamide",
+    "examide",
+    "citoglipton",
+    "insulin",
+    "glyburide-metformin",
+    "glipizide-metformin",
+    "glimepiride-pioglitazone",
+    "metformin-rosiglitazone",
+    "metformin-pioglitazone",
+    "change",
+    "diabetesMed",
+]
+
 
 def normalize_missing_sentinel(X: pd.DataFrame) -> pd.DataFrame:
     """Folktables'ın eksikler için kullandığı -1 değerlerini NaN'a dönüştürür."""
     return X.replace(-1, np.nan)
 
 
+def normalize_diabetes_missing(X: pd.DataFrame) -> pd.DataFrame:
+    """UCI dosyasındaki '?' eksik değer işaretlerini NaN'a dönüştürür."""
+    return X.replace("?", np.nan)
+
+
 def build_preprocessor(task_name: str) -> ColumnTransformer:
-    """Ön işleme hattını kurar; yalnızca eğitim verisinde fit edilmelidir.
+    """Göreve uygun ön işleme hattını kurar; yalnızca eğitimde fit edilmelidir.
 
     Sayısal sütunlar medyanla tamamlanıp ölçeklenir. Kategorik sütunlarda en sık
     değer kullanılır ve one-hot kodlama yapılır. Bilinmeyen kategoriler atlanır.
     Doğrulama ve test verisinden bilgi sızmasını önlemek için bu dönüşümler,
     modelle birlikte bir sklearn Pipeline içine alınmalıdır.
     """
-    if task_name not in NUMERIC_FEATURES:
-        raise ValueError(f"Unknown Folktables task: {task_name}")
+    if task_name not in NUMERIC_FEATURES or task_name not in CATEGORICAL_FEATURES:
+        raise ValueError(f"Bilinmeyen veri görevi: {task_name}")
 
     numeric = Pipeline(
         steps=[("imputer", SimpleImputer(strategy="median")), ("scale", StandardScaler())]
     )
+    categorical_imputer = SimpleImputer(strategy="most_frequent")
+    if task_name == "DiabetesReadmission":
+        # Bu görevde bazı kategorik sütunların çoğu eksiktir; eksikliği ayrı bir
+        # kategori olarak korumak, en sık değere doldurmaktan daha açıklayıcıdır.
+        categorical_imputer = SimpleImputer(strategy="constant", fill_value="Eksik")
     categorical = Pipeline(
         steps=[
-            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("imputer", categorical_imputer),
             ("onehot", OneHotEncoder(handle_unknown="ignore")),
         ]
     )
