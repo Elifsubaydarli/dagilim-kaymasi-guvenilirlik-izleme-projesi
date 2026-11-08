@@ -1,0 +1,8 @@
+folktables==0.0.12
+numpy==2.5.4
+pandas==2.3.3
+scikit-learn==1.9.1
+matplotlib==3.11.2
+seaborn==0.13.2
+xgboost
+torch
