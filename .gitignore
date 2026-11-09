@@ -1,29 +1,28 @@
-# Python
+# Python ve yerel ortam
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.env
+.venv/
 venv/
-env/
-
-# Veri Kümeleri (Ham ve İşlenmiş büyük veri dosyaları GitHub 100MB sınırını aşar)
-data/raw/*.csv
-data/raw/*.zip
-data/raw/2014/
-data/raw/2018/
-data/processed/*.npy
-
-# Git takibinde kalacaklar
-!data/raw/veri_indirme_ozeti.csv
-!data/processed/preprocessing_report.txt
-!data/processed/feature_names.joblib
-!data/processed/preprocessor_pipeline.joblib
-!reports/
-!reports/figures/
-!reports/figures/*.png
-
-# IDE ve geçici dosyalar
-.vscode/
-.idea/
+.env
 .ipynb_checkpoints/
+
+# Ham veriler ve büyük ön işleme çıktıları Git'e eklenmez
+data/**
+!data/README.md
+results/**
+!results/README.md
+!results/phase1/
+results/phase1/*
+!results/phase1/diabetes_admission_source.csv
+!results/phase1/diabetes_missingness.csv
+!results/phase1/diabetes_summary.csv
+!results/phase1/diabetes_summary.json
+results/phase1/preprocessed/
+
+# Raporda kullanılan özet CSV dosyaları paylaşılabilir
+reports/figures/*.csv
+!reports/figures/veri_ozeti.csv
+!reports/figures/eksik_deger_oranlari.csv
+
+# Sunum LMS üzerinden teslim edilir
+reports/*.pptx
