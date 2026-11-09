@@ -10,24 +10,33 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
-from folktables import ACSEmploymentFiltered, ACSDataSource, ACSIncome
+from folktables import ACSEmployment, ACSDataSource, ACSIncome
 
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data" / "folktables"
 OUTPUT_DIR = ROOT / "results" / "phase1"
-TASKS = {"ACSIncome": ACSIncome, "ACSEmployment": ACSEmploymentFiltered}
+FIGURE_DIR = ROOT / "reports" / "figures"
+TASKS = {"ACSIncome": ACSIncome, "ACSEmployment": ACSEmployment}
 YEARS = (2014, 2018)
 STATES = ("CA", "MI")
 TASK_CATEGORICAL = {
     "ACSIncome": ["COW", "SCHL", "MAR", "OCCP", "POBP", "RELP", "SEX", "RAC1P"],
     "ACSEmployment": [
         "SCHL", "MAR", "RELP", "DIS", "ESP", "CIT", "MIG", "MIL", "ANC",
-        "NATIVITY", "DEAR", "DEYE", "DREM", "SEX", "RAC1P", "GCL",
+        "NATIVITY", "DEAR", "DEYE", "DREM", "SEX", "RAC1P",
     ],
 }
+
+
+def save_figure(fig, filename: str) -> None:
+    """Grafiği analiz çıktısına ve rapor klasörüne kaydeder."""
+    for directory in (OUTPUT_DIR, FIGURE_DIR):
+        directory.mkdir(parents=True, exist_ok=True)
+        fig.savefig(directory / filename, dpi=180, bbox_inches="tight")
 
 
 def as_series(values: object, name: str) -> pd.Series:
@@ -45,8 +54,13 @@ def load_sample(
 ) -> tuple[dict, pd.DataFrame, pd.Series]:
     task = TASKS[task_name]
     filtered = task._preprocess(raw.copy())
-    X, y, _ = task.df_to_pandas(raw.copy())
-    y = as_series(y, "target")
+    X = filtered[task.features].copy().replace(-1, np.nan)
+    target = (
+        task.target_transform(filtered[task.target])
+        if task.target_transform is not None
+        else filtered[task.target]
+    )
+    y = as_series(target, "target")
 
     if len(X) != len(y) or len(X) != len(filtered):
         raise RuntimeError(
@@ -55,25 +69,28 @@ def load_sample(
         )
 
     class_counts = y.value_counts(dropna=False).sort_index()
-    feature_missing = filtered[task.features].isna()
+    feature_missing = X.isna()
     summary = {
         "task": task_name,
         "source": "U.S. Census Bureau ACS PUMS, 1-year person microdata via Folktables",
         "folktables_version": "0.0.12",
-        "task_definition": "ACSEmploymentFiltered (age 17-89; PWGTP >= 1)" if task_name == "ACSEmployment" else "ACSIncome (AGEP > 16, PINCP > 100, WKHP > 0, PWGTP >= 1)",
+        "task_definition": (
+            "ACSEmployment (ESR == 1; Folktables 0.0.12 görev filtresi uygulanmadı)"
+            if task_name == "ACSEmployment"
+            else "ACSIncome (AGEP > 16, PINCP > 100, WKHP > 0, PWGTP >= 1)"
+        ),
         "survey_year": year,
         "state": state,
         "raw_rows": int(len(raw)),
-        "task_rows_after_official_filter": int(len(X)),
+        "task_rows": int(len(X)),
         "n_features": int(X.shape[1]),
         "numeric_features": ", ".join(c for c in X.columns if c not in TASK_CATEGORICAL[task_name]),
         "categorical_features": ", ".join(c for c in X.columns if c in TASK_CATEGORICAL[task_name]),
-        "missing_cells_before_task_postprocess": int(feature_missing.sum().sum()),
-        "rows_with_any_missing_before_task_postprocess": int(feature_missing.any(axis=1).sum()),
+        "missing_cells_after_task_filter": int(feature_missing.sum().sum()),
+        "rows_with_any_missing_after_task_filter": int(feature_missing.any(axis=1).sum()),
         "feature_missing_rates": json.dumps(
             {column: float(rate) for column, rate in feature_missing.mean().items()}
         ),
-        "missing_cells_after_task_postprocess": int(X.isna().sum().sum()),
         "target_positive_n": int((y == 1).sum()),
         "target_negative_n": int((y == 0).sum()),
         "target_positive_rate": float((y == 1).mean()),
@@ -87,8 +104,8 @@ def plot_overview(summaries: pd.DataFrame) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     for ax, task_name in zip(axes, TASKS):
         subset = summaries[summaries["task"] == task_name].copy()
-        sns.barplot(data=subset, x="survey_year", y="task_rows_after_official_filter", hue="state", ax=ax)
-        ax.set_title(f"{task_name}: filtre sonrası örnek sayısı")
+        sns.barplot(data=subset, x="survey_year", y="task_rows", hue="state", ax=ax)
+        ax.set_title(f"{task_name}: görev örnek sayısı")
         ax.set_xlabel("Eyalet ve ACS yılı")
         ax.set_ylabel("Kişi sayısı")
         ax.tick_params(axis="x", rotation=20)
@@ -96,7 +113,7 @@ def plot_overview(summaries: pd.DataFrame) -> None:
             ax.legend_.remove()
     axes[1].legend(title="Eyalet", loc="upper right")
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "ornek_sayilari.png", dpi=180, bbox_inches="tight")
+    save_figure(fig, "ornek_sayilari.png")
     plt.close(fig)
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -115,7 +132,7 @@ def plot_overview(summaries: pd.DataFrame) -> None:
         ax.set_ylabel("Pozitif sınıf oranı")
         ax.set_xticks(YEARS)
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "sinif_oranlari.png", dpi=180, bbox_inches="tight")
+    save_figure(fig, "sinif_oranlari.png")
     plt.close(fig)
 
 
@@ -144,7 +161,7 @@ def plot_feature_distributions(samples: dict[tuple[str, int, str], tuple[pd.Data
         ax.set_xlabel("Yaş")
         ax.set_ylabel("Yoğunluk")
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "yas_dagilimlari.png", dpi=180, bbox_inches="tight")
+    save_figure(fig, "yas_dagilimlari.png")
     plt.close(fig)
 
 
@@ -171,9 +188,8 @@ def main() -> None:
                 summaries.append(summary)
                 samples[(task_name, year, state)] = (X, y)
 
-    # Rapor, resmi görev filtresinden sonra ve Folktables eksikleri -1 ile
-    # değiştirmeden önceki özelliklere dayanır. Büyük ACS dosyalarını yeniden
-    # okumamak için yukarıda yüklenen örnekler tekrar kullanılır.
+    # Rapor, görev tanımından sonra ve Folktables eksikleri -1 ile değiştirilmeden
+    # önceki özelliklere dayanır. Ham ACS tabloları yeniden okunmaz.
     missing_rows = []
     for summary in summaries:
         rates = json.loads(summary.pop("feature_missing_rates"))
@@ -198,7 +214,7 @@ def main() -> None:
 
     print(f"\nÖzet kaydedildi: {OUTPUT_DIR / 'veri_ozeti.csv'}")
     print(f"Grafikler kaydedildi: {OUTPUT_DIR}")
-    print(summary_df[["task", "survey_year", "state", "task_rows_after_official_filter", "target_positive_rate"]].to_string(index=False))
+    print(summary_df[["task", "survey_year", "state", "task_rows", "target_positive_rate"]].to_string(index=False))
 
 
 if __name__ == "__main__":
