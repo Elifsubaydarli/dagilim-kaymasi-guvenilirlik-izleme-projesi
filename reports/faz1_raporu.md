@@ -1,126 +1,219 @@
-# Faz 1 İlerleme Raporu
+# Faz 1 Proje İlerleme Durum Raporu
 
-**Proje:** Tablosal Veride Dağılım Kaymasına Duyarlı Güvenilirlik İzleme
-**Grup:** Elif Su Baydarlı (241230017), Zehra Akgül (241230036)
-**Durum:** Üç veri görevi incelenmiş, ön işleme adımları tanımlanmış ve uygulanmış, yöntem seçimi yapılmıştır. Model eğitimi ve performans izleme deneyleri henüz yapılmamıştır.
+**Proje:** Tablosal Veride Dağılım Kaymasına Duyarlı Güvenilirlik İzleme: Güven, Kalibrasyon, Veri Kayması ve Açıklama Sinyallerinin Erken Uyarı Performansının Karşılaştırmalı Analizi
 
-## 1. Amaç ve problem
+**Grup üyeleri:** Elif Su Baydarlı (241230017), Zehra Akgül (241230036)
 
-Dağıtım sonrasında veri dağılımı değişebilir. Gerçek etiketler gecikmeli geldiğinde modelin performansını hemen ölçmek mümkün olmayabilir. Bu projede tablosal ikili sınıflandırma modellerinin performansındaki bozulmanın; güven, kalibrasyon, girdi kayması ve açıklama değişimi gibi etiketsiz sinyallerle ne kadar erken ve ne kadar az yanlış alarm vererek izlenebileceği araştırılacaktır.
+**Ders sorumlusu:** Dr. Öğr. Üyesi Hayri İncekara
 
-Folktables ACSIncome ve ACSEmployment görevleri ile hastaneye yeniden yatış görevi ikili sınıflandırma problemleridir. Çalışmanın ana problemi, bu görevlerde eğitilecek modellerin performans düşüşünü dağılım kayması altında izlemektir. Bu fazda model eğitilmemiş, sonuç üretilmemiştir.
+**Rapor tarihi:** 9 Kasım 2026
+**Proje alanı:** Makine öğrenmesi
 
-## 2. Veri setleri ve görevler
+## 1. Projenin tanımı ve amacı
 
-Proje kapsamında üç temel görev seçilmiştir. İlk iki görev, ABD Nüfus Sayımı Bürosu ACS PUMS mikroverisinden Folktables ile oluşturulan görevlerdir. Üçüncü görev, UCI Diabetes 130-US Hospitals verisinden oluşturulan yeniden yatış sınıflandırmasıdır. Veri setleri yapay olarak üretilmemiş olup gerçek gözlemlere dayanmaktadır.
+### 1.1. Problem tanımı
 
-| Görev ve kaynak | Hedef | Veri sürümü ve bağlam | Ham kayıt | Filtre sonrası | Özellik |
+Bir model kullanıma alındıktan sonra girdi verilerinin dağılımı değişebilir. Gerçek etiketler gecikmeli geldiğinde başarı düşüşü hemen ölçülemez. Bu çalışma, tablosal ikili sınıflandırma görevlerinde etiketsiz izleme sinyallerinin performans bozulmasını ne zaman gösterebildiğini ve ne sıklıkta yanlış alarm ürettiğini araştırmaktadır.
+
+### 1.2. Projenin amacı
+
+Amaç; girdi dağılımı, tahmin güveni, olasılık kalibrasyonu ve model açıklamalarındaki değişimi izleyen sinyalleri karşılaştırmaktır. Etiketler erişilebilir olduğunda bu sinyaller modelin Accuracy, F1 ve AUC gibi ölçümleriyle birlikte değerlendirilecektir.
+
+### 1.3. Projenin kapsamı
+
+Projede ABD ACS PUMS verisinden Folktables ACSIncome ve ACSEmployment görevleri ile UCI Diabetes 130-US Hospitals verisinden 30 günlük yeniden yatış görevi incelenmektedir. Bu görevler yıl, eyalet ve yatış kaynağı bağlamlarında karşılaştırılacaktır. Faz 1’de veri analizi ve ön işleme yapılmış, modeller seçilmiştir; model eğitimi ve performans deneyi henüz yapılmamıştır.
+
+## 2. Veri setlerinin bulunması ve analizi
+
+### 2.1. Kullanılan veri setleri
+
+Faz 1’de iki gerçek veri kaynağından üç etiketli ikili sınıflandırma görevi kullanılmıştır. ACS görevleri 2014 ve 2018 bir yıllık ACS PUMS kişi mikroverisinden Folktables 0.0.12 ile elde edilmiştir. UCI veri seti 1999–2008 döneminde 130 ABD hastanesindeki karşılaşmaları içerir [1, 8–12]. Veri setleri yapay olarak üretilmemiştir.
+
+- **ACSIncome:** Yıllık kişisel gelirin 50.000 ABD doları üzerinde olup olmadığını tahmin eder. Folktables görev filtresi `AGEP > 16`, `PINCP > 100`, `WKHP > 0` ve `PWGTP >= 1` koşullarını uygular. 10 girdi özelliği vardır: 2 sayısal ve 8 kategorik.
+- **ACSEmployment:** Çalışıyor olma hedefi `ESR == 1` olarak tanımlanır. Folktables 0.0.12’de bu görev için ek satır filtresi uygulanmamıştır. 16 girdi özelliği vardır: 1 sayısal ve 15 kategorik.
+- **Diabetes 130-US Hospitals:** Hedef, `readmitted` değeri `<30` olan kayıtların yeniden yatış pozitif sınıfı olarak belirlenmesidir. `>30` ve `NO` negatif sınıftır. UCI’deki 101.766 ham kaydın 2.273’ünde `race` eksik olduğu için bu kayıtlar çıkarılmış; 99.493 kayıt kalmıştır. Ham CSV’de 50 sütun bulunur. Kimlikler, hedef, alan değişkeni `admission_source_id` ve yüksek eksikliği nedeniyle `weight` model girdilerinden çıkarıldığında 45 girdi özelliği kalır. Bu görev TableShift’in Hospital Readmission tanımıyla uyumludur [1, 11, 12].
+
+Folktables: https://github.com/socialfoundations/folktables
+
+ACS PUMS: https://www.census.gov/programs-surveys/acs/microdata.html
+
+UCI Diabetes 130-US Hospitals: https://archive.ics.uci.edu/dataset/296/diabetes+130-us-hospitals-for-years-1999-2008
+
+### 2.2. Veri setlerinin genel özellikleri
+
+ACS verileri California (CA) ve Michigan (MI) eyaletleri için 2014 ve 2018 yıllarında incelenmiştir. Sınıf sayıları kişi ağırlığı `PWGTP` kullanılmadan hesaplanmıştır. Bu oranlar ABD nüfusu için ağırlıklı tahmin değildir. UCI’de 99.493 kaydın 11.169’u 30 gün içinde yeniden yatış, 88.324’ü negatif sınıftır. Pozitif sınıf oranı %11,23’tür.
+
+| İncelenen özellik | Açıklama / sonuç |
+|---|---|
+| Toplam veri sayısı | ACSIncome: 183.941, 47.888, 195.665 ve 50.008 görev kaydı. ACSEmployment: 372.553, 98.180, 378.817 ve 99.419 görev kaydı. UCI: 99.493 görev kaydı. |
+| Eğitim verisi | 2014 CA ACSIncome: 147.152; ACSEmployment: 298.042; UCI kaynak alanı içi eğitim: 27.281 kayıt. |
+| Doğrulama verisi | 2014 CA ACSIncome: 36.789; ACSEmployment: 74.511; UCI kaynak alanı içi doğrulama: 6.834 kayıt. |
+| Ayrılmış değerlendirme verisi | ACS 2018 CA zamansal; MI 2014 ve 2018 coğrafi değerlendirme bağlamlarıdır. UCI’de `admission_source_id = 7` alan dışı bağlamı 56.632 kayıttır. Bu bölümlerde model sonucu henüz hesaplanmamıştır. |
+| Sınıf sayısı | Üç görev de iki sınıflıdır. Sınıf sayıları aşağıdaki tabloda verilmiştir. |
+| Sınıf dağılımı | ACS görevlerinde oranlar bağlama göre değişir. UCI’de pozitif sınıf 11.169, negatif sınıf 88.324’tür. |
+| Eksik veri durumu | ACSIncome girdilerinde eksik değer yoktur. ACSEmployment’ta en fazla eksik değer `ESP` sütunundadır (%79,27–%81,32). UCI’de tüm kayıtlarda en az bir model girdisi eksiktir; `weight` %96,93 eksik olduğu için çıkarılmıştır. Kalan girdilerde en yüksek eksiklik `max_glu_serum` sütununda %94,68’dir. |
+| Etiket durumu | Üç görev de etiketlidir. ACS hedefleri Folktables görev tanımına; UCI hedefi `readmitted` alanına dayanır. |
+| Veri formatı | ACS PUMS ve UCI karşılaşma kayıtları CSV biçiminde tablosaldır. |
+| Boyut / özellik | ACSIncome 10; ACSEmployment 16; UCI 45 model girdi özelliği. UCI ham CSV sütun sayısı 50’dir. |
+
+**Bağlama göre sınıf sayıları**
+
+| Bağlam | Görev | Pozitif sınıf | Pozitif | Negatif | Toplam |
 |---|---|---|---:|---:|---:|
-| ACSIncome, Folktables | Yıllık kişisel gelir > 50.000 USD | Folktables 0.0.12; 2014 CA | 372.553 | 183.941 | 10 |
-| ACSIncome, Folktables | Aynı | 2014 MI | 98.180 | 47.888 | 10 |
-| ACSIncome, Folktables | Aynı | 2018 CA | 378.817 | 195.665 | 10 |
-| ACSIncome, Folktables | Aynı | 2018 MI | 99.419 | 50.008 | 10 |
-| ACSEmploymentFiltered, Folktables | Çalışıyor (`ESR == 1`) | Folktables 0.0.12; 2014 CA | 372.553 | 292.975 | 17 |
-| ACSEmploymentFiltered, Folktables | Aynı | 2014 MI | 98.180 | 78.691 | 17 |
-| ACSEmploymentFiltered, Folktables | Aynı | 2018 CA | 378.817 | 302.640 | 17 |
-| ACSEmploymentFiltered, Folktables | Aynı | 2018 MI | 99.419 | 80.126 | 17 |
-| Diabetes 130-US Hospitals, UCI 296 | Hastaneden çıktıktan sonraki 30 gün içinde yeniden yatış | 1999–2008; TableShift görevindeki ırk bilgisi filtresi | 101.766 | 99.493 | 45 model girdisi |
+| 2014 CA | ACSIncome | PINCP > 50.000 USD | 65.227 | 118.714 | 183.941 |
+| 2014 MI | ACSIncome | PINCP > 50.000 USD | 13.599 | 34.289 | 47.888 |
+| 2018 CA | ACSIncome | PINCP > 50.000 USD | 80.335 | 115.330 | 195.665 |
+| 2018 MI | ACSIncome | PINCP > 50.000 USD | 16.861 | 33.147 | 50.008 |
+| 2014 CA | ACSEmployment | ESR = 1 | 160.493 | 212.060 | 372.553 |
+| 2014 MI | ACSEmployment | ESR = 1 | 41.597 | 56.583 | 98.180 |
+| 2018 CA | ACSEmployment | ESR = 1 | 172.803 | 206.014 | 378.817 |
+| 2018 MI | ACSEmployment | ESR = 1 | 44.103 | 55.316 | 99.419 |
+| UCI, 1999–2008 | Yeniden yatış | `readmitted = <30` | 11.169 | 88.324 | 99.493 |
 
-Folktables görevleri sayısal ve kategorik özellikleri birlikte içerir. ACSIncome’da 2 sayısal ve 8 kategorik; ACSEmploymentFiltered’da 1 sayısal ve 16 kategorik özellik vardır. Folktables görev tanımları ve ACS PUMS erişimi kaynakçada verilmiştir [1, 9, 13].
+### 2.3. Veri setinin görselleştirilmesi
 
-UCI verisinde 50 sütun bulunur. `encounter_id` ve `patient_nbr` kimlik alanları, `readmitted` hedefi ve `admission_source_id` alanı model girdisi olarak kullanılmayacaktır. `admission_source_id` alanı dış alanı tanımlamak için saklanacaktır. Eksikliği %96,93 olan `weight` ilk model hattından çıkarılmıştır. Böylece 45 model girdisi kalmıştır. Ham tabloda 17 yatış kaynağı kodu gözlenmiştir; TableShift’in tanımladığı acil servis alanı kodu 7’dir [2, 12]. Veri UCI sayfasından erişilebilir; indirme 7 Kasım 2026’da yapılmıştır [1].
+Örnek sayısı ve pozitif sınıf oranı ACS yılına ve eyalete göre değişmektedir. UCI’de yeniden yatış sınıfı dengesizdir. Grafikler bu dağılımları ve incelenen eksik değerleri göstermektedir.
 
-### Sınıf dağılımı
+![Görev ve bağlama göre örnek sayıları](figures/ornek_sayilari.png)
 
-ACSIncome pozitif sınıfı CA’da 2014’te %35,46, 2018’de %41,06; MI’da sırasıyla %28,40 ve %33,72’dir. ACSEmploymentFiltered pozitif sınıfı CA’da %54,69’dan %56,98’e, MI’da %52,60’tan %54,75’e değişmiştir. ACS örnekleri etiketlidir. Oranlar kişi ağırlığı `PWGTP` uygulanmadan hesaplanmıştır ve nüfus tahmini olarak yorumlanmamalıdır.
+![ACS görevlerinde pozitif sınıf oranı](figures/sinif_oranlari.png)
 
-UCI verisinde ırk bilgisi eksik 2.273 kayıt çıkarıldıktan sonra `readmitted` etiketleri `<30`: 11.169, `>30`: 35.007 ve `NO`: 53.317’dir. Projede pozitif sınıf `<30`, negatif sınıf `>30` veya `NO` olarak tanımlanmıştır. Böylece 11.169 pozitif ve 88.324 negatif kayıt elde edilmiştir. Veri 69.668 benzersiz hasta içerir; hasta başına birden fazla yatış kaydı bulunduğundan bölme hasta kimliğine göre yapılacaktır.
-
-## 3. Eksik değer ve ön işleme
-
-- ACSIncome görevinde incelenen özelliklerde eksik değer bulunmamıştır.
-- ACSEmploymentFiltered’da hücrelerin yaklaşık %7’si eksiktir. `ESP` sütunundaki eksiklik %98,42–%98,62; `GCL` sütunundaki eksiklik %18,47–%22,22 aralığındadır. `ESP` ilk model hattından çıkarılacak, etkisi ayrıca incelenecektir.
-- UCI dosyasında `?` eksik değer olarak okunmuştur. Irk bilgisi eksik 2.273 kayıt, TableShift’in yayımladığı filtreyle tutarlı biçimde çıkarılmıştır [12]. Model girdileri arasındaki en yüksek kalan eksiklik `max_glu_serum` sütununda %94,68’dir. `weight` sütunu %96,93 eksik olduğu için ilk model girdilerinde tutulmayacaktır.
-- Folktables ön işleme hattında `-1` eksik değer olarak ele alınacaktır. Sayısal alanlar eğitim verisindeki medyanla doldurulup ölçeklenecek; kategorik alanlar eğitim verisindeki en sık değerle doldurulup one-hot kodlanacaktır.
-- UCI ön işleme hattında sayısal alanlar medyanla doldurulup ölçeklenecek; kategorik alanlardaki eksiklik ayrı bir `Eksik` kategorisi olarak korunup one-hot kodlanacaktır. Kimlik alanları girdi olmayacaktır.
-- Dönüştürücüler yalnızca eğitim bölümünde fit edilecek; doğrulama ve test verisine aynı dönüşümler uygulanacaktır. Folktables için 2014 CA eğitim, 2018 CA zamansal değerlendirme ve MI coğrafi değerlendirme olarak planlanmıştır. UCI verisinde hasta kimlikleri eğitim ve değerlendirme bölümleri arasında ayrılacak; acil servis yatış kaynağı ayrı bir dış alan olarak kullanılacaktır. Bölme ve rastgelelik tohumları modelleme öncesinde sabitlenecektir.
-
-Ön işleme uygulamaları [preprocessing.py](../src/data/preprocessing.py), ACS veri keşfi [phase1_eda.py](../src/data/phase1_eda.py), UCI veri keşfi [phase1_readmission_eda.py](../src/data/phase1_readmission_eda.py) dosyalarındadır. Ham veri Git’e eklenmez.
-
-## 4. Keşif analizi ve görseller
-
-ACS örnek sayıları, sınıf oranları ve yaş dağılımları ile UCI sınıf dağılımı, eksik değer oranları ve yatış kaynağı dağılımı aşağıda verilmiştir.
-
-![Görev ve bağlam başına ACS örnek sayısı](figures/ornek_sayilari.png)
-
-![ACS görevlerinde pozitif sınıf oranları](figures/sinif_oranlari.png)
-
-![ACS görevlerinde yaş dağılımları](figures/yas_dagilimlari.png)
+![ACS görevlerinde yaş dağılımı](figures/yas_dagilimlari.png)
 
 ![UCI yeniden yatış sınıf sayıları](figures/diabetes_siniflari.png)
 
-![UCI model girdilerindeki eksik değer oranları](figures/diabetes_eksik_degerler.png)
+![UCI model girdilerinde eksik değer oranları](figures/diabetes_eksik_degerler.png)
 
-![UCI verisinde en sık yatış kaynağı kodları](figures/diabetes_yatis_kaynagi.png)
+![UCI yatış kaynağı dağılımı](figures/diabetes_yatis_kaynagi.png)
 
-ACS sınıf oranları yıl ve eyalet bağlamlarına göre farklıdır; bu tek başına model başarımının düştüğünü göstermez. UCI verisindeki tekrarlı hasta kayıtları bağımsız gözlem varsayımını etkileyebilir; bu nedenle rastgele satır bazlı bölme kullanılmayacaktır. Eksikliği yüksek UCI ölçüm alanlarının modele katkısı sonraki aşamada ayrı değerlendirilecektir.
+ACS sınıf oranındaki değişim tek başına model performansının düştüğünü göstermez. UCI’de aynı hastaya ait birden fazla karşılaşma vardır; 69.668 benzersiz hasta ve 29.825 tekrar karşılaşma kaydı bulunur. Bu nedenle veri bölmeleri hasta kimliğini koruyacak şekilde hazırlanmıştır.
 
-## 5. Literatür taraması
+### 2.4. Veri setlerinin proje için uygunluğu
 
-### UCI yeniden yatış görevi
+ACS görevleri, farklı yıl ve eyalet bağlamlarını aynı görev tanımı içinde incelemeyi sağlar. UCI görevi ise etiketli 30 günlük yeniden yatış hedefi ve `admission_source_id` alanıyla kaynak dışı değerlendirme olanağı sunar. Görevlerin etiketli olması, ilerleyen aşamada etiketsiz izleme sinyallerini gerçek performans metrikleriyle karşılaştırmayı mümkün kılar.
 
-Aşağıdaki çalışmalar aynı UCI Diabetes 130-US Hospitals verisini diyabet hastalarında hastaneye yeniden yatış sınıflandırması veya bu sonucun analizinde kullanmıştır. Hedef tanımı, filtreleme ve bölme yöntemleri çalışmadan çalışmaya değiştiğinden yayımlanan metrikler doğrudan karşılaştırılabilir değildir.
+UCI’de pozitif sınıf azınlıktadır ve tekrar karşılaşmalar hasta bazlı bölme gerektirir. `weight` ve bazı laboratuvar alanlarında eksiklik yüksektir. ACS sınıf oranları kişi ağırlığı kullanılmadan hesaplanmıştır. Bu sınırlılıklar raporlanan sayılar ve sonraki değerlendirme protokolüyle birlikte ele alınacaktır.
 
-| Kaynak | Yöntem ve veri kullanımı | Bu projeyle ilişkisi |
+## 3. Veri ön işleme ve hazırlık
+
+### 3.1. Uygulanan ön işleme işlemleri
+
+Ham verilerdeki eksiklik işaretleri düzenlenmiş; özellik ve hedef sütunları ayrılmış; eğitim, doğrulama ve alan dışı bölümler hazırlanmıştır. Dönüştürücüler yalnızca eğitim verisinde fit edilmiştir.
+
+- Folktables `-1` ve UCI `?` değerleri eksik değer olarak işlenmiştir.
+- Sayısal değişkenler eğitim verisinin medyanı ile tamamlanmış ve StandardScaler ile ölçeklenmiştir.
+- ACSIncome kategorik değişkenleri en sık değerle; ACSEmployment ve UCI kategorik değişkenleri ayrı `Eksik` kategorisiyle tamamlanmıştır. One-hot kodlama uygulanmıştır.
+- ACSIncome ve ACSEmployment için 2014 CA görev verisi hedef sınıfı korunarak %80 eğitim ve %20 iç doğrulama olarak bölünmüştür. 2018 CA zamansal, 2014 ve 2018 MI coğrafi değerlendirme bağlamlarıdır.
+- UCI’de eksik `race` nedeniyle 2.273 kayıt çıkarılmıştır. `admission_source_id = 7` alan dışı tutulmuştur. Bu alandaki hastalarla örtüşen 8.746 kaynak alanı kaydı eğitim kaynağından çıkarılmış; kalan kayıtlar hasta kimliğine göre %80/%20 eğitim-doğrulama olarak ayrılmıştır.
+- UCI eğitim, iç doğrulama ve alan dışı bölümlerinde sırasıyla 27.281, 6.834 ve 56.632 kayıt vardır. Bölümler arasında hasta kimliği örtüşmesi yoktur. UCI bölmesi TableShift’in yayımlanmış resmi bölmelerinin aynısı değildir [11, 12].
+
+### 3.2. Ön işleme öncesi ve sonrası veri seti
+
+| Özellik | Ön işleme öncesi | Ön işleme sonrası |
 |---|---|---|
-| Strack et al. (2014) [2] | UCI veri kaynağındaki klinik kayıtları inceleyerek HbA1c ölçümü ile yeniden yatış arasındaki ilişkileri değerlendirmiştir. | Veri kaynağı ve klinik değişkenlerin tanımı için temel çalışmadır. |
-| Alloghani et al. (2019) [3] | UCI verisinden 78.363 diyabetli kaydı ve 18 özelliği kullanmış; LDA, Random Forest, kNN, Naive Bayes, J48 ve SVM uygulamıştır. | Aynı veri üzerinde farklı sınıflandırıcıları ve özellikleri incelemiştir. |
-| Cui et al. (2018) [4] | 8.756 kayıtta genetik algoritmayla ayarlanan SVM, SMOTE ve özellik seçimi kullanmıştır; beş katlı doğrulama bildirmiştir. | Sınıf dengesizliği ve özellik seçiminin önemini gösterir. |
-| Shang et al. (2021) [5] | 100.244 kayıt ve 23 risk özelliğiyle Random Forest, Naive Bayes ve karar ağacı topluluğunu karşılaştırmıştır; RF en yüksek AUC’yi vermiştir. | 30 günlük hedef tanımına yakın bir sınıflandırma çalışmasıdır. |
-| Cuong ve Wang (2021) [6] | Lojistik Regresyon, ANN, Naive Bayes, SVM ve XGBoost’u rastgele aramayla karşılaştırmış; XGBoost’u en başarılı yöntem olarak raporlamıştır. | Model ve metrik seçiminde karşılaştırma noktası sağlar. |
-| Liu et al. (2024) [7] | 11 yöntem, Grey Wolf Optimizer ile özellik seçimi, SMOTE ve grup bazlı çapraz doğrulama kullanmıştır; RF ve XGBoost’u öne çıkarmıştır. | Grup bazlı bölmenin ve sınıf dengesizliğini ele almanın gereğini destekler. |
-| Emi-Johnson et al. (2025) [8] | Lojistik Regresyon, RF, XGBoost ve derin sinir ağı kullanmış; AUC-ROC değerlerini sırasıyla 0,642, 0,630, 0,667 ve 0,579 bildirmiştir. | Aynı görevde farklı model aileleri ile metriklerin karşılaştırılmasına örnektir. |
+| Kayıt sayısı | ACS görev sayıları bağlama göre 47.888–378.817; UCI ham 101.766 kayıt. | UCI filtre sonrası 99.493 kayıt. Eğitim matrisleri: ACSIncome 147.152, ACSEmployment 298.042, UCI 27.281 kayıt. Ayrı doğrulama ve alan dışı bölümler oluşturulmuştur. |
+| Özellik boyutu | ACSIncome 10; ACSEmployment 16; UCI ham CSV 50 sütun. | One-hot sonrası ACSIncome 757, ACSEmployment 98, UCI 2.011 girdi özelliği. |
+| Veri formatı | Ham CSV kayıtları. | Seyrek CSR matrisleri `.npz`, hedef etiketleri `.npy` biçiminde yerel olarak üretilmiştir. |
+| Eksik veri | ACSIncome girdilerinde yok; ACSEmployment `ESP` alanı %79,27–%81,32 eksik; UCI girdilerinde eksiklik yaygındır. | Sayısal eksikler medyanla, kategorik eksikler görev kuralına göre doldurulmuştur. Dönüşüm sonrası matrislerde sonlu olmayan değer kalmamıştır. |
+| Ölçekleme / kodlama | Sayısal ve kategorik alanlar kaynak kodlarıyla tutulmuştur. | Sayısal alanlar ölçeklenmiş; kategorik alanlar one-hot kodlanmıştır. Fit yalnızca eğitim verisinde yapılmıştır. |
+| Etiket | ACSIncome, ACSEmployment ve `readmitted` kaynak etiketleri. | Üç görev ikili hedef olarak kaydedilmiştir; UCI `<30` pozitif, `>30` ve `NO` negatiftir. |
 
-### Dağılım kayması ve performans izleme
+UCI bölümlerinde eğitim verisi 23.104 hastayı, doğrulama 5.776 hastayı ve alan dışı bölüm 40.788 hastayı içerir. ACS ve UCI dönüşüm hatları eğitim verisine fit edilmiştir. Matris ve ön işleyici dosyaları `results/phase1/preprocessed/` altında yerel olarak tutulur; ham veri ve bu büyük ara çıktılar depoya eklenmemiştir.
 
-Ding et al. [9] Folktables ACSIncome ve ACSEmployment görevlerini, yıllar ve eyaletler arasında karşılaştırılabilir veri görevleri olarak tanımlamıştır. Amoukou et al. [10] Folktables gelir sınıflandırmasında coğrafi ve zamansal değişimi kullanmış; etiketsiz sırayla izleme için hata tahmincisi ve nicelik tabanlı alarm yöntemi önermiştir. Çalışmalarında nicelik tabanlı yöntemin güç değeri 0,48 ve yanlış keşif oranı 0,019; ortalama tabanlı yöntemin değerleri sırasıyla 0,01 ve 0,19 olarak raporlanmıştır. Białek et al. [11] ABD nüfus sayımı verilerinden oluşturulan 900’den fazla model-veri birleşiminde etiketsiz performans tahmini için PAPE yöntemini incelemiştir. Gardner et al. [12] TableShift içinde 15 tablosal sınıflandırma görevi ve alan kayması tanımlamış; UCI Hospital Readmission görevini de bu benchmarka dahil etmiştir.
+### 3.3. Ön işleme kodları ve çıktıları
 
-Bu kaynaklar veri seti üzerindeki yeniden yatış sınıflandırmasını ve etiketsiz performans izleme yöntemlerini ayrı ayrı kapsar. İncelenen literatürde bu üç veri görevini, güven/kalibrasyon/kayma/açıklama sinyallerini ve erken uyarı performansını tek deney protokolünde karşılaştıran bir çalışma belirlenmemiştir. Bu gözlem kapsamlı tarama ile sınanacaktır; kesin bir “daha önce yapılmadı” iddiası değildir. Veri seti ve problem bazında literatür matrisinin teslim öncesinde grupça genişletilmesi gerekir.
+ACS keşif kodu `src/data/phase1_eda.py`, UCI keşif kodu `src/data/phase1_readmission_eda.py`, dönüşüm adımları `src/data/preprocessing.py` ve bölme/çıktı üretimi `src/data/phase1_preprocessing.py` dosyalarındadır. Özetler `results/phase1/` ve paylaşılabilir grafikler `reports/figures/` altındadır. Ön işleme çalıştırılmış ve matrisler oluşturulmuştur; sınıflandırma modelleri henüz eğitilmemiştir.
 
-## 6. Seçilen modeller ve değerlendirme planı
+## 4. Literatür taraması
 
-| Model | Kullanım amacı | Veri türüne uygunluk |
+### 4.1. İlgili akademik çalışmalar
+
+Veri setinin kaynak makalesi Strack et al. [2] olarak ayrıca incelenmiştir. Aşağıdaki beş çalışma UCI Diabetes 130-US Hospitals verisi veya aynı 130 hastanelik 1999–2008 kayıt kaynağı üzerinde diyabet hastalarının yeniden yatışını ele alır. Veri filtresi, hedef kodlaması ve bölme yöntemi çalışmalar arasında farklıdır.
+
+| No | Makale / çalışma | Yıl | Kullanılan veri seti | Kullanılan yöntem | Temel sonuç |
+|---:|---|---:|---|---|---|
+| 1 | Alloghani et al. [3] | 2019 | 130 ABD hastanesinin diyabet kayıtları; 78.363 tedavi alan kişi | LDA, Random Forest, kNN, Naive Bayes, J48 ve SVM; 70/30 ayrım, eğitimde 10 katlı doğrulama | Yeniden yatışla ilişkili klinik değişkenler ve farklı sınıflandırıcılar incelenmiştir. Filtre bu projeden farklıdır. |
+| 2 | Cui et al. [4] | 2018 | Diabetes 130-US Hospitals kaynaklı 8.756 kayıt | SMOTE, özellik seçimi ve genetik algoritmayla ayarlanan SVM; beş katlı çapraz doğrulama | %81,02 doğruluk, %82,89 duyarlılık ve %79,23 özgüllük bildirilmiştir; örneklem ve protokol farklıdır. |
+| 3 | Shang et al. [5] | 2021 | 130 hastanelik 1999–2008 diyabet kayıtları; ön işleme sonrası 100.244 kayıt | Random Forest, Naive Bayes ve karar ağacı topluluğu; 23 özellik | Random Forest üç yöntem arasında en yüksek ROC-AUC değerini vermiştir. Sonuç doğrudan karşılaştırılabilir değildir. |
+| 4 | Liu, Sue ve Wu [6] | 2024 | UCI Diabetes 130-US Hospitals; 101.766 karşılaşma | 10 makine öğrenmesi yöntemi ve LSTM; GWO ile özellik seçimi, grup katlarında SMOTE | Yazarlar Random Forest ve XGBoost’u öne çıkarmıştır. Özet bölümündeki F1 değerleri tutarsız olduğundan sayısal sonuç kullanılmamıştır. |
+| 5 | Emi-Johnson ve Nkrumah [7] | 2025 | UCI Diabetes 130-US Hospitals; 101.766 karşılaşma | Lojistik Regresyon, Random Forest, XGBoost ve derin sinir ağı; 80/20 bölme ve SHAP | XGBoost ROC-AUC 0,667; Lojistik Regresyon 0,642; Random Forest 0,630; derin sinir ağı 0,579 olarak raporlanmıştır. |
+
+### 4.2. Kullanılan yöntemlerin analizi
+
+İncelenen çalışmalarda lojistik regresyon, Random Forest, destek vektör makineleri, artırmalı ağaçlar ve sinir ağları kullanılmıştır. SMOTE ve özellik seçimi, sınıf dengesizliği ve değişken sayısını ele almak için kullanılan yöntemlerdir. Veri filtresi, hedef ve bölme protokolleri farklı olduğundan yayımlanan skorlar bu projenin gelecekteki sonuçlarıyla sayısal olarak karşılaştırılmayacaktır. Bu projede planlanan kalibrasyon ve etiketsiz izleme deneyleri Faz 1’de henüz yapılmamıştır.
+
+Çalışmalar farklı hedef ve filtre tanımlarına, kayıt sayılarına ve veri bölme protokollerine sahiptir. Özellikle dengesiz sınıflarda doğruluk tek başına yeterli değildir. Bu nedenle yayımlanan skorlar bu projenin gelecekteki sonuçlarıyla doğrudan karşılaştırılmayacak; ancak aynı hedef ve benzer bölme koşulları bulunan durumlarda yöntemsel bağlamla birlikte yorumlanacaktır.
+
+### 4.3. Literatürün genel değerlendirilmesi
+
+Folktables, ACSIncome ve ACSEmployment görevlerini aynı veri kaynağının yıl ve eyalet örneklemlerinde tanımlar [8–10]. TableShift, UCI yeniden yatış görevinde yatış kaynağı 7’yi (acil servis) alan dışı grup olarak kullanır [11, 12]. Etiketsiz zararlı kayma tespiti ve etiket gecikmesinde performans tahmini, dağılım izleme literatüründe ele alınmıştır [13, 14]. Bu rapor Faz 1 düzeyinde bir kaynak taramasıdır; özgünlük veya literatürde ilk olma iddiası içermez.
+
+## 5. Kullanılacak yöntem ve mimariler
+
+### 5.1. Yöntem seçimi
+
+Faz 1 için üç tablosal sınıflandırıcı ve bir düşük uygunluk kontrol mimarisi olmak üzere dört yöntem seçilmiştir. Böylece yönergede belirtilen 3–5 yöntem aralığı karşılanmaktadır.
+
+| Yöntem / model | Kullanılma amacı | Seçilme nedeni |
 |---|---|---|
-| Lojistik Regresyon | Yorumlanabilir başlangıç modeli | Uygun |
-| Random Forest | Doğrusal olmayan ilişkiler ve etkileşimler için ağaç topluluğu | Uygun |
-| XGBoost | Karışık tablosal özelliklerde karşılaştırma modeli | Uygun |
-| 1B CNN | Uygun olmayan mimari için kontrol karşılaştırması | Düşük uygunluk; tablo sütunlarının ardışık komşuluğu doğal bir yapı taşımaz |
+| Lojistik Regresyon | Başlangıç sınıflandırıcısı | Yorumlanabilir ve doğrusal karşılaştırma noktası sağlar. |
+| Random Forest | Doğrusal olmayan ilişkiler ve etkileşimler | Tablosal veride ağaç tabanlı karşılaştırma sağlar. |
+| XGBoost | Artırmalı ağaç karşılaştırması | Tablosal sınıflandırma literatüründeki güçlü ağaç yöntemlerinden biridir. |
+| 1B CNN | Düşük uygunluk kontrolü | Tablo sütunlarının doğal sırası olmadığından evrişim varsayımının etkisini sınamak için kullanılır. |
 
-Faz 2 modelleme çalışmaları için farklı mimari ailelerini temsil eden dört model belirlenmiştir. 1B CNN, görüntü veya sıralı veri mimarisinin tablosal verideki davranışını kıyaslamak ve bir kontrol grubu oluşturmak üzere dahil edilmiştir. Bu aşamada modeller henüz eğitilmemiştir.
+### 5.2. Seçilen mimarilerin açıklanması
 
-Sonraki aşamada modeller Accuracy, Precision, Recall, Dengeli F1, ROC-AUC ve PR-AUC metrikleriyle değerlendirilecektir. Olasılık kalibrasyonu Brier skoru ve ECE (Beklenen Kalibrasyon Hatası) ile ölçülecektir. Etiketsiz izleme sinyallerinin erken uyarı başarısı; yanlış alarm oranı, tespit gücü ve gecikme metrikleri üzerinden analiz edilecektir.
+Lojistik Regresyon doğrusal karar sınırı ve katsayılarıyla başlangıç karşılaştırması sağlayacaktır. Random Forest çok sayıda karar ağacının oylarını birleştirir. XGBoost ağaçları ardışık olarak ekleyip önceki hataları azaltmayı amaçlar. 1B CNN özellik dizisini evrişim katmanlarıyla işler; tablosal sütunlarda doğal komşuluk olmadığı için düşük uygunluklu kontrol modeli olarak tutulmuştur. Modellerin hiperparametreleri Faz 2’de belirlenecektir.
 
-## 7. Faz 1 Özeti ve Sonraki Adımlar
+### 5.3. Yöntemlerin karşılaştırılması
 
-Faz 1 kapsamında belirlenen üç veri görevi (ACSIncome, ACSEmploymentFiltered ve UCI Diabetes Readmission) incelenmiş, resmi bağlantıları doğrulanmış, sınıf dağılımları ve eksik değer analizleri tamamlanmıştır. Veri sızıntısını önleyen ön işleme hattı kurulmuş ve karşılaştırılacak model mimarileri netleştirilmiştir.
+Lojistik Regresyon yorumlanabilir bir başlangıç sunar, ancak karmaşık doğrusal olmayan ilişkileri sınırlı temsil eder. Ağaç tabanlı yöntemler doğrusal olmayan ilişkileri ve etkileşimleri yakalayabilir; sonuçların kalibrasyonu ayrıca ölçülecektir. 1B CNN’in performansı, sütun sıralama varsayımına duyarlıdır ve tablo özellikleri için uygun olmayan kontrolü temsil eder.
 
-Sonraki aşamada (Faz 2):
-1. Belirlenen modellerin referans eğitim verileri üzerinde eğitimi ve hiperparametre doğrulaması yapılacaktır.
-2. Kontrollü dağılım kayması senaryoları (özellik kayması, gürültü ve eksik veri) simüle edilecektir.
-3. Etiketsiz güvenilirlik sinyallerinin model çöküşünü ne kadar erken ve ne kadar az yanlış alarmla yakaladığı ölçülecektir.
+### 5.4. Değerlendirme metrikleri
 
-## Kaynakça
+Etiketler kullanılarak Accuracy, Precision, Recall, F1, ROC-AUC ve PR-AUC hesaplanacaktır. UCI pozitif sınıfı %11,23 olduğundan F1 ve PR-AUC özellikle raporlanacaktır; Accuracy tek başına yorumlanmayacaktır. Olasılık kalibrasyonu Brier skoru ve ECE ile değerlendirilecektir. Erken uyarı sinyalleri yanlış alarm oranı, tespit gücü ve uyarı gecikmesiyle karşılaştırılacaktır. Bu metrikler için Faz 1’de sonuç üretilmemiştir.
 
-1. Clore, J., Cios, K., DeShazo, J., & Strack, B. (2014). *Diabetes 130-US Hospitals for Years 1999-2008* [Veri seti]. UCI Machine Learning Repository. https://doi.org/10.24432/C5230J. Veri: https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008
-2. Strack, B. et al. (2014). Impact of HbA1c measurement on hospital readmission rates: Analysis of 70,000 clinical database patient records. *BioMed Research International*, 2014, 781670. https://doi.org/10.1155/2014/781670
-3. Alloghani, M. et al. (2019). Implementation of machine learning algorithms to create diabetic patient re-admission profiles. *BMC Medical Informatics and Decision Making*, 19(Suppl 9), 253. https://doi.org/10.1186/s12911-019-0990-x
-4. Cui, S., Wang, D., Wang, Y. et al. (2018). An improved support vector machine-based diabetic readmission prediction. *Computer Methods and Programs in Biomedicine*, 166, 123–135. https://doi.org/10.1016/j.cmpb.2018.10.012
-5. Shang, Y. et al. (2021). The 30-days hospital readmission risk in diabetic patients: Predictive modeling with machine learning classifiers. *BMC Medical Informatics and Decision Making*, 21, 57. https://doi.org/10.1186/s12911-021-01423-y
-6. Cuong, L. D. P., & Wang, D. (2021). A comparison of machine learning methods to predict hospital readmission of diabetic patient. *Studies of Applied Economics*, 39(4). https://doi.org/10.25115/eea.v39i4.4475
-7. Liu, V. B., Sue, L. Y., & Wu, Y. (2024). Comparison of machine learning models for predicting 30-day readmission rates for patients with diabetes. *Journal of Medical Artificial Intelligence*, 7, 23. https://doi.org/10.21037/jmai-24-70
-8. Emi-Johnson, O. G., & Nkrumah, K. J. (2025). Predicting 30-day hospital readmission in patients with diabetes using machine learning on electronic health record data. *Cureus*, 17(4), e82437. https://doi.org/10.7759/cureus.82437
-9. Ding, F., Hardt, M., Miller, J., & Schmidt, L. (2021). Retiring Adult: New datasets for fair machine learning. *Advances in Neural Information Processing Systems*, 34. https://doi.org/10.48550/arXiv.2108.04884. Folktables: https://github.com/socialfoundations/folktables
-10. Amoukou, S. I. et al. (2024). Sequential harmful shift detection without labels. *Advances in Neural Information Processing Systems*, 38th Conference. https://doi.org/10.52202/079017-4107
-11. Białek, J. et al. (2025). Estimating model performance under covariate shift without labels. *Advances in Neural Information Processing Systems*, 38. https://doi.org/10.52202/085713-5379
-12. Gardner, J., Popovic, Z., & Schmidt, L. (2023). Benchmarking distribution shift in tabular data with TableShift. *Advances in Neural Information Processing Systems*, 36. https://doi.org/10.52202/075280-2324. TableShift: https://github.com/mlfoundations/tableshift
-13. U.S. Census Bureau. American Community Survey Public Use Microdata Sample (ACS PUMS). https://www.census.gov/programs-surveys/acs/microdata.html
+## 6. Faz 1 uygulama durumu ve çıktılar
+
+| Gerçekleştirilen iş | Durum | Açıklama |
+|---|---|---|
+| Veri setlerinin bulunması | Kısmen tamamlandı | ACS PUMS/Folktables ve UCI kaynakları ile üç görev tanımlandı; proje önerisindeki ikinci TableShift görevi henüz seçilmedi. |
+| Veri setlerinin indirilmesi | Tamamlandı | ACS 2014/2018 CA/MI dosyaları ve UCI CSV yerel çalışma alanında kullanıldı. |
+| Veri analizinin yapılması | Tamamlandı | Örnek sayısı, sınıf etiketleri, eksik değerler ve veri özellikleri incelendi. |
+| Veri görselleştirmeleri | Tamamlandı | Altı analiz grafiği hazırlandı. |
+| Ön işleme | Tamamlandı | Eğitim verisine fit edilen dönüşümler çalıştırıldı; matrisler yerel çıktı klasöründe üretildi. |
+| Literatür taraması | İlk tarama tamamlandı | Beş UCI yeniden yatış çalışması ile Folktables, TableShift ve izleme kaynakları incelendi. |
+| Yöntem / mimari seçimi | Tamamlandı | Lojistik Regresyon, Random Forest, XGBoost ve düşük uygunluk kontrolü olarak 1B CNN seçildi; modeller eğitilmedi. |
+
+Proje deposu: https://github.com/Elifsubaydarli/dagilim-kaymasi-guvenilirlik-izleme-projesi
+
+## 7. Sonuç ve sonraki fazın planı
+
+### 7.1. Faz 1 genel değerlendirmesi
+
+İki veri kaynağından üç etiketli sınıflandırma görevi tanımlandı. ACS bağlamlarında ve UCI görevinde örnek sayısı, sınıf dağılımı ve eksik değer analizi yapıldı. Altı görsel hazırlandı. Veri temizleme, hasta ve bağlam ayrımı, imputasyon, ölçekleme ve one-hot dönüşümünü içeren ön işleme hattı çalıştırıldı. Dört model seçildi; model eğitimi ve izleme deneyi yapılmadı.
+
+### 7.2. Karşılaşılan problemler
+
+ACSEmployment görevinde `ESP` eksikliği yüksektir. UCI’de `weight` ve bazı ölçüm alanlarının eksikliği yüksektir; sınıflar dengesiz ve hasta başına karşılaşma sayısı birden fazladır. UCI için kullanılan hasta bazlı alan ayrımı resmi TableShift bölmelerini kopyalamaz. Bu nedenle raporlanan veri hazırlama sonuçları ile gelecekteki benchmark sonuçları ayrı tutulacaktır.
+
+### 7.3. Sonraki fazın planı
+
+Proje önerisindeki en az iki TableShift göreviyle dış doğrulama koşulu için ikinci görev henüz seçilmemiştir. ACSIncome ve ACSEmployment hedefleri TableShift Income ve Unemployment görevleriyle aynı değildir. Faz 2’de ikinci görev belirlenecek, resmi TableShift bölmeleri kullanılacak, dört model eğitilecek ve kontrollü kaymalar altında izleme sinyalleri değerlendirilecektir. Sonuçlar benzer hedef, filtre ve bölme kullanan çalışmalarla karşılaştırılacak; iki kişilik grup için finalde gerçek makale/bildiri hazırlanacaktır.
+
+## 8. Kaynakça
+
+1. Clore, J., Cios, K., DeShazo, J., & Strack, B. (2014). Diabetes 130-US Hospitals for Years 1999–2008 [Veri seti]. UCI Machine Learning Repository. https://doi.org/10.24432/C5230J. https://archive.ics.uci.edu/dataset/296/diabetes+130-us-hospitals-for-years-1999-2008
+2. Strack, B., DeShazo, J. P., Gennings, C., Olmo, J. L., Ventura, S., Cios, K. J., & Clore, J. N. (2014). Impact of HbA1c measurement on hospital readmission rates: Analysis of 70,000 clinical database patient records. BioMed Research International, 2014, 781670. https://doi.org/10.1155/2014/781670
+3. Alloghani, M., Aljaaf, A., Hussain, A., Baker, T., Mustafina, J., Al-Jumeily, D., & Khalaf, M. (2019). Implementation of machine learning algorithms to create diabetic patient re-admission profiles. BMC Medical Informatics and Decision Making, 19(Suppl 9), 253. https://doi.org/10.1186/s12911-019-0990-x
+4. Cui, S., Wang, D., Wang, Y., Yu, P., & Jin, Y. (2018). An improved support vector machine-based diabetic readmission prediction. Computer Methods and Programs in Biomedicine, 166, 123–135. https://doi.org/10.1016/j.cmpb.2018.10.012
+5. Shang, Y., Jiang, K., Wang, L., Zhang, Z., Zhou, S., Liu, Y., Dong, J., & Wu, H. (2021). The 30-days hospital readmission risk in diabetic patients: Predictive modeling with machine learning classifiers. BMC Medical Informatics and Decision Making, 21(Suppl 2), 57. https://doi.org/10.1186/s12911-021-01423-y
+6. Liu, V. B., Sue, L. Y., & Wu, Y. (2024). Comparison of machine learning models for predicting 30-day readmission rates for patients with diabetes. Journal of Medical Artificial Intelligence, 7, 23. https://doi.org/10.21037/jmai-24-70
+7. Emi-Johnson, O. G., & Nkrumah, K. J. (2025). Predicting 30-day hospital readmission in patients with diabetes using machine learning on electronic health record data. Cureus, 17(4), e82437. https://doi.org/10.7759/cureus.82437
+8. Ding, F., Hardt, M., Miller, J. P., & Schmidt, L. (2021). Retiring Adult: New datasets for fair machine learning. Advances in Neural Information Processing Systems, 34. https://doi.org/10.48550/arXiv.2108.04884
+9. Social Foundations Lab. (n.d.). Folktables: Datasets derived from U.S. Census data. https://github.com/socialfoundations/folktables
+10. U.S. Census Bureau. (n.d.). American Community Survey Public Use Microdata Sample (ACS PUMS). https://www.census.gov/programs-surveys/acs/microdata.html
+11. Gardner, J., Popovic, Z., & Schmidt, L. (2023). Benchmarking distribution shift in tabular data with TableShift. Advances in Neural Information Processing Systems, 36, Datasets and Benchmarks Track. https://doi.org/10.52202/075280-2324
+12. TableShift. (n.d.). Datasets: Hospital Readmission. https://tableshift.org/datasets.html
+13. Amoukou, S. I., Bewley, T., Mishra, S., Lecue, F., Magazzeni, D., & Veloso, M. (2024). Sequential harmful shift detection without labels. Advances in Neural Information Processing Systems, 37. https://doi.org/10.52202/079017-4107
+14. Białek, J., Kivimäki, J., Kuberski, W., & Perrakis, N. (2025). Estimating model performance under covariate shift without labels. Advances in Neural Information Processing Systems, 38. https://doi.org/10.52202/085713-5379
