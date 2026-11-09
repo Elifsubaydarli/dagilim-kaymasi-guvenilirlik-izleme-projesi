@@ -1,92 +1,33 @@
-# Tablosal Veride Dağılım Kaymasına Duyarlı Güvenilirlik İzleme
+# Dağılım Kaymasına Duyarlı Güvenilirlik İzleme
 
-Bu depo, **Uygulamalı Yapay Zekâ** dersi kapsamında yürütülen dönem projesinin ve akademik bildiri/makale çalışmasının resmi kod ve dokümantasyon deposudur.
+Bu proje, tablosal makine öğrenmesi modellerinde dağılım kayması sırasında performans düşüşünü etiketsiz izleme sinyallerinin ne kadar erken ve ne kadar az yanlış alarmla yakalayabildiğini inceler. Proje önerisi: [`docs/proje-onerisi.pdf`](docs/proje-onerisi.pdf).
 
-## Proje Künyesi
-- **Proje Başlığı:** Tablosal Veride Dağılım Kaymasına Duyarlı Güvenilirlik İzleme: Güven, Kalibrasyon, Veri Kayması ve Açıklama Sinyallerinin Erken Uyarı Performansının Karşılaştırmalı Analizi
-- **Proje Türü:** Grup Projesi
-- **Araştırmacılar / Grup Üyeleri:**
-  - **Zehra Akgül** (Öğrenci No: 241230036)
-  - **Elif Su Baydarlı** (Öğrenci No: 241230017)
+## Proje bilgileri
 
----
+- **Proje başlığı:** Tablosal Veride Dağılım Kaymasına Duyarlı Güvenilirlik İzleme: Güven, Kalibrasyon, Veri Kayması ve Açıklama Sinyallerinin Erken Uyarı Performansının Karşılaştırmalı Analizi
+- **Proje türü:** İki kişilik grup çalışması
+- **Grup üyeleri:** Elif Su Baydarlı (241230017) ve Zehra Akgül (241230036)
+- **Faz 1 kapsamı:** İki kaynak veri setinden üç sınıflandırma görevi incelenmiştir. ABD ACS PUMS verisinden, proje önerisindekiyle aynı Folktables ACSIncome ve ACSEmployment görevleri; UCI Diabetes 130-US Hospitals verisinden yeniden yatış görevi kullanılır.
+- **Durum:** ACS ve UCI verilerinin keşif analizi ve ön işleme çalışmaları raporlanmıştır; dört model seçilmiştir ancak eğitilmemiştir. İkinci TableShift görevi henüz belirlenmemiştir.
+- **TableShift kapsamı:** UCI Hospital Readmission görevi TableShift’in veri, hedef ve alan tanımıyla örtüşür; ancak kullanılan hasta bazlı bölmeler resmi TableShift bölmeleri değildir. ACSIncome ve ACSEmployment görevlerinin hedefleri de TableShift Income ve Unemployment görevleriyle aynı değildir. Bu nedenle önerideki en az iki TableShift göreviyle dış doğrulama henüz tamamlanmamıştır; ikinci görev Faz 2’de seçilip resmi bölmeler kullanılacaktır.
 
-## 1. Faz Özeti ve Tamamlanan Kazanımlar
-1. **Veri Kümelerinin Temini:** ABD Nüfus Bürosu (Census) ACS verisinden türetilen Folktables görevleri (`ACSIncome` ve `ACSEmployment`) indirilmiş ve doğrulanmıştır.
-   - Referans Eğitim / Dağıtım İçi (ID): 2018 California (195.665 satır)
-   - Zamansal Dağılım Kayması (Temporal OOD): 2014 California (183.941 satır)
-   - Coğrafi Dağılım Kayması (Geographic OOD): 2018 New York (103.021 satır)
-   - İkinci Görev Doğrulama: 2018 California ACSEmployment (378.817 satır)
-2. **Keşifçi Veri Analizi (EDA) ve Rapor Grafikleri:** 
-   - Sınıf dengesi, özellik dağılımları ve korelasyon matrisi çıkarılmıştır.
-   - KS-Testi ve Wasserstein Mesafesi ile zamansal ve coğrafi kaymalar kanıtlanmıştır.
-   - 300 DPI çözünürlükte 6 adet bilimsel grafik `reports/figures/` altına kaydedilmiştir.
-3. **Veri Ön İşleme (Preprocessing) Pipeline:**
-   - **Sıfır Veri Sızıntısı (Zero Leakage):** Scaler ve One-Hot kodlayıcılar yalnızca %80 eğitim verisi üzerinde eğitilmiş (`fit`), test ve OOD verileri yalnızca dönüştürülmüştür (`transform`).
-   - `preprocessor_pipeline.joblib` olarak paketlenmiştir.
-4. **Model Mimarileri ve İzleme Protokolü:**
-   - 4 Model Mimarisi: Lojistik Regresyon (Lineer), Random Forest (Bagging), LightGBM/XGBoost (Boosting), MLP (Derin Tablosal Ağ).
-   - İzleme Metrikleri: Accuracy, F1, ROC-AUC, ECE (Kalibrasyon), Brier Skoru, PSI (Popülasyon Kararlılığı) ve XAI Uyuşmazlığı.
-5. **Rapor:** Tebligata tam uyumlu 1. Faz Raporu `reports/PROJE_FAZ1_RAPORU.md` dosyasında hazırdır.
+## Araştırma sorusu
 
----
+Farklı kayma mekanizmalarında hangi etiketsiz sinyal performans bozulmasını en erken ve en az yanlış alarmla yakalar; sinyaller kayma türüne göre nasıl birleştirilmelidir?
 
-## Dosya Yapısı ve Proje Mimarisi
+## Çalışma planı
 
-```text
-dagilim_kaymasi/
-├── 01_veri_indir.py                     # 1. Adım: Folktables veri indirme scripti
-├── 02_kesifci_veri_analizi_eda.py        # 2. Adım: EDA, dağılım kayması testi ve grafikler
-├── 03_on_isleme_pipeline.py             # 3. Adım: Veri sızıntısız preprocessing pipeline
-├── 04_model_mimarileri_ve_rapor.py      # 4. Adım: Model mimarileri ve 1. Faz rapor üretimi
-│
-├── data/
-│   ├── raw/                             # Ham Census ACS verileri ve özet tablosu
-│   └── processed/                       # İşlenmiş train/test/OOD matrisleri ve pipeline (.joblib)
-│
-├── reports/
-│   ├── PROJE_FAZ1_RAPORU.md             # Tebligat formatında eksiksiz 1. Faz Raporu
-│   ├── eda_istatistik_ozeti.md          # İstatistiksel özet ve frekans tabloları
-│   └── figures/                         # Rapora eklenen 300 DPI yüksek çözünürlüklü grafikler
-│       ├── fig1_sinif_dagilimlari.png
-│       ├── fig2_ozellik_dagilimlari.png
-│       ├── fig3_korelasyon_matrisi.png
-│       ├── fig4_zamansal_dagilim_kaymasi.png
-│       ├── fig5_cografi_dagilim_kaymasi.png
-│       └── fig6_model_mimarileri_ve_protokol.png
-│
-├── requirements.txt                     # Kütüphane bağımlılıkları
-├── .gitignore                           # Git izleme filtreleri
-└── README.md                            # Bu belge
-```
+1. **Veri ve kapsam:** Faz 1’de Folktables ACSIncome ve ACSEmployment ile UCI Hospital Readmission görevlerinin sürüm, özellik ve örnek sayılarını `reports/faz1_raporu.md` içinde belirt. Proje önerisindeki en az iki TableShift göreviyle dış doğrulama henüz tamamlanmamıştır; ikinci görev Faz 2’de seçilip resmi bölmeler kullanılacaktır.
+2. **Başlangıç modelleri:** Lojistik Regresyon, Random Forest, XGBoost ve uygun olmayan mimari kontrolü olarak 1B CNN'i kur; Accuracy, F1 ve AUC'yi kaydet.
+3. **Kontrollü kaymalar:** Özellik/kovaryat, eksik veri, gürültü, zamansal/coğrafi, kavram ve kısayol kaymalarını artan şiddet seviyelerinde üret.
+4. **İzleme sinyalleri:** Güven/belirsizlik; kalibrasyon; PSI, KS/Wasserstein ve alan sınıflandırıcısı; SHAP açıklama kayması; permütasyon önemi ve açıklama-bağımlılık uyuşmazlığını hesapla.
+5. **Erken uyarı değerlendirmesi:** Eşikleri dağıtım içi bootstrap örneklerinde %5 yanlış alarm oranına göre belirle. Bozulma AUROC'si, uyarı önceliği ve yanlış alarm oranını ölç.
+6. **Birleşim ve karşılaştırma:** Tek sinyal, sabit ağırlıklı ve kayma türüne duyarlı birleşimleri seçilen taban çizgileriyle karşılaştır; çoklu tohum, bootstrap aralıkları, eşleşmiş testler ve dışarıda bırakma doğrulaması kullan.
+7. **Raporlama:** Bulguları ve sınırlılıkları yaz; yenilik iddiasını 15-20 çalışmalık literatür matrisiyle doğrula. Negatif sonuçları da raporla.
 
----
 
-## Kurulum ve Çalıştırma
+## Faz 1: veri keşfi
 
-### 1. Bağımlılıkların Kurulması
-```bash
-pip install -r requirements.txt
-```
+Veri sayıları, eksik değer incelemesi, grafikler, literatür özeti ve yöntem seçimi [`reports/faz1_raporu.md`](reports/faz1_raporu.md) dosyasındadır. Düzenlenebilir rapor `reports/faz1_raporu.docx`, PDF raporu `reports/faz1_raporu.pdf` olarak tutulur. Keşif kodları `src/data/phase1_eda.py` ve `src/data/phase1_readmission_eda.py` dosyalarındadır.
 
-### 2. Adımların Sırayla Çalıştırılması
-```bash
-# 1. Veri setlerini indirme ve doğrulama
-python 01_veri_indir.py
-
-# 2. Keşifçi Veri Analizi (EDA) ve Grafik Üretimi
-python 02_kesifci_veri_analizi_eda.py
-
-# 3. Veri Ön İşleme (Preprocessing) Pipeline
-python 03_on_isleme_pipeline.py
-
-# 4. Model Mimarileri, İleri Metrikler ve Rapor Üretimi
-python 04_model_mimarileri_ve_rapor.py
-```
-
----
-
-## Proje Ekibi ve Katkılar
-Proje, grup üyeleri tarafından ortaklaşa yürütülmektedir:
-- **Zehra Akgül** (241230036)
-- **Elif Su Baydarlı** (241230017)
+Ham veriler `data/` ve ön işleme matrisleri `results/phase1/preprocessed/` altında yerel tutulur. UCI analizinin küçük özet tabloları `results/phase1/`; raporda kullanılan grafikler ve özet tablolar `reports/figures/` altında sürümlenir.
